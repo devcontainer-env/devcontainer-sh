@@ -1,0 +1,11 @@
+#autoload
+#
+# _dcsh_pick_shell
+#
+# Print a sh expression that picks the best available shell inside the
+# container at runtime. We can't probe the container without an extra exec
+# round-trip, so we let the container's own `command -v` resolve it.
+
+emulate -L zsh
+
+print -r -- '${SHELL:-$(command -v zsh || command -v bash || command -v sh)}'

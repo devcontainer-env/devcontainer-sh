@@ -1,0 +1,67 @@
+#compdef devcontainer
+
+_devcontainer() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  _arguments -C \
+    '1: :->subcmd' \
+    '*::arg:->args'
+
+  case "$state" in
+    subcmd)
+      local -a subs=(
+        'up:Create and run dev container'
+        'set-up:Set up an existing container as a dev container'
+        'build:Build a dev container image'
+        'run-user-commands:Run user commands'
+        'read-configuration:Read configuration'
+        'outdated:Show current and available versions'
+        'upgrade:Upgrade lockfile'
+        'features:Features commands'
+        'templates:Templates commands'
+        'exec:Execute a command on a running dev container'
+      )
+      _describe -t commands 'devcontainer subcommand' subs
+      ;;
+    args)
+      case "$line[1]" in
+        up)
+          _arguments \
+            '--workspace-folder=[Workspace folder path]:dir:_directories' \
+            '--config=[devcontainer.json path]:file:_files' \
+            '--remove-existing-container[Remove the container if it already exists]' \
+            '--build-no-cache[Build the image without cache]' \
+            '--skip-post-create[Do not run post-create commands]' \
+            '--skip-post-attach[Do not run postAttachCommand]' \
+            '--id-label=[Container id label name=value]:label' \
+            '--mount=[Additional mount]:mount' \
+            '--remote-env=[Remote env name=value]:env' \
+            '--cache-from=[Layer cache source]:image' \
+            '--cache-to=[Layer cache destination]:image' \
+            '--log-level=[Log level]:level:(info debug trace)'
+          ;;
+        exec)
+          _arguments \
+            '--workspace-folder=[Workspace folder path]:dir:_directories' \
+            '--container-id=[Container id]:id' \
+            '--id-label=[Container id label name=value]:label' \
+            '--remote-env=[Remote env name=value]:env' \
+            '*::command: _command_names -e'
+          ;;
+        build)
+          _arguments \
+            '--workspace-folder=[Workspace folder path]:dir:_directories' \
+            '--config=[devcontainer.json path]:file:_files' \
+            '--no-cache[Build without cache]' \
+            '--image-name=[Image name]:name' \
+            '--platform=[Target platforms]:platform' \
+            '--push[Push to registry]' \
+            '--log-level=[Log level]:level:(info debug trace)'
+          ;;
+      esac
+      ;;
+  esac
+}
+
+_devcontainer "$@"

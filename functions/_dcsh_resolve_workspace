@@ -1,0 +1,25 @@
+#autoload
+#
+# _dcsh_resolve_workspace [START_DIR]
+#
+# Print the workspace folder for the current context: the nearest ancestor of
+# START_DIR (default $PWD) that contains a .devcontainer/devcontainer.json or
+# .devcontainer.json. Falls back to START_DIR if no config is found, so commands
+# still pass a valid --workspace-folder to the upstream CLI.
+
+emulate -L zsh
+
+local dir="${1:-$PWD}"
+dir="${dir:A}"
+local start="$dir"
+
+while [[ "$dir" != "/" && -n "$dir" ]]; do
+  if [[ -f "$dir/.devcontainer/devcontainer.json" || -f "$dir/.devcontainer.json" ]]; then
+    print -r -- "$dir"
+    return 0
+  fi
+  dir="${dir:h}"
+done
+
+print -r -- "$start"
+return 0
