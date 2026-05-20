@@ -55,8 +55,8 @@ Usage: devcontainer-sh <subcommand> [args...]
 Subcommands:
   up          Create and start the dev container for this workspace
   shell, sh   Open an interactive shell inside the container
-  exec, x     Run a one-off command in the container
-  build, b    Build the dev container image
+  exec        Run a one-off command in the container
+  build       Build the dev container image
   down        Stop and remove the container associated with this workspace
   help        Show usage
   version     Plugin version + upstream CLI version

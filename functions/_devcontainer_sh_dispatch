@@ -2,8 +2,8 @@
 #
 # _devcontainer_sh_dispatch SUBCOMMAND [ARGS...]
 #
-# Route to the matching _devcontainer_sh::<sub> function. Short forms (sh, x, b) map to
-# their long names. Unknown or missing subcommands print help and exit 1.
+# Route to the matching _devcontainer_sh::<sub> function. The short form `sh` maps to
+# `shell`. Unknown or missing subcommands print help and exit 1.
 
 emulate -L zsh
 
@@ -17,8 +17,8 @@ local sub="$1"; shift
 case "$sub" in
   up)               _devcontainer_sh::up "$@" ;;
   shell|sh)         _devcontainer_sh::shell "$@" ;;
-  exec|x)           _devcontainer_sh::exec "$@" ;;
-  build|b)          _devcontainer_sh::build "$@" ;;
+  exec)             _devcontainer_sh::exec "$@" ;;
+  build)            _devcontainer_sh::build "$@" ;;
   down)             _devcontainer_sh::down "$@" ;;
   help|-h|--help)   _devcontainer_sh::help "$@" ;;
   version|-v|--version) _devcontainer_sh::version "$@" ;;

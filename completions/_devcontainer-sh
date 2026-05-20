@@ -15,9 +15,7 @@ _devcontainer_sh() {
         'shell:Open an interactive shell in the container'
         'sh:Alias for shell'
         'exec:Run a one-off command in the container'
-        'x:Alias for exec'
         'build:Build the dev container image'
-        'b:Alias for build'
         'down:Stop and remove the dev container'
         'help:Show usage'
         'version:Show plugin and devcontainer CLI versions'
@@ -55,7 +53,7 @@ _devcontainer_sh() {
             '--workspace-folder=[Workspace folder path]:dir:_directories' \
             '1::shell:(zsh bash sh fish dash ash)'
           ;;
-        exec|x)
+        exec)
           _arguments \
             '--workspace-folder=[Workspace folder path]:dir:_directories' \
             '--container-id=[Container id]:id' \
@@ -63,7 +61,7 @@ _devcontainer_sh() {
             '--remote-env=[Remote env name=value]:env' \
             '*::command: _command_names -e'
           ;;
-        build|b)
+        build)
           _arguments \
             '-n[--no-cache]' \
             '-p[--platform]:platform' \

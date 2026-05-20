@@ -12,8 +12,8 @@ Subcommands:
                                     -R both, -s skip-post-create
   shell, sh [shell]      Open an interactive shell inside the container
                          (auto-picks zsh > bash > sh, or pass a shell name)
-  exec, x <cmd> [args]   Run a one-off command in the container
-  build, b [opts]        Build the container image  (-n no-cache, -p PLATFORM)
+  exec <cmd> [args]      Run a one-off command in the container
+  build [opts]           Build the container image  (-n no-cache, -p PLATFORM)
   down                   Stop and remove the container for this workspace
   help                   Show this help
   version                Show plugin and devcontainer CLI versions
