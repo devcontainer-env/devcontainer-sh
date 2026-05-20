@@ -1,7 +1,7 @@
 # devcontainer-sh — zsh wrapper around the devcontainer CLI.
 # Works with oh-my-zsh, zinit, antidote, or plain `source`.
 
-DCSH_VERSION="0.1.0"
+DEVCONTAINER_SH_VERSION="0.1.0"
 
 () {
   emulate -L zsh
@@ -10,7 +10,7 @@ DCSH_VERSION="0.1.0"
 
   fpath=("$plugin_dir/functions" "$plugin_dir/completions" $fpath)
 
-  autoload -Uz _dcsh_dispatch _dcsh_resolve_workspace _dcsh_pick_shell _dcsh_id_label
+  autoload -Uz _devcontainer_sh_dispatch _devcontainer_sh_resolve_workspace _devcontainer_sh_pick_shell _devcontainer_sh_id_label
 
   local f
   for f in "$plugin_dir"/subcommands/*.zsh; do
@@ -19,5 +19,5 @@ DCSH_VERSION="0.1.0"
 }
 
 devcontainer-sh() {
-  _dcsh_dispatch "$@"
+  _devcontainer_sh_dispatch "$@"
 }

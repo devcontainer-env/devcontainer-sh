@@ -1,6 +1,6 @@
 #autoload
 #
-# _dcsh_resolve_workspace [START_DIR]
+# _devcontainer_sh_resolve_workspace [START_DIR]
 #
 # Print the workspace folder for the current context: the nearest ancestor of
 # START_DIR (default $PWD) that contains a .devcontainer/devcontainer.json or

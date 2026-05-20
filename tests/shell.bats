@@ -15,7 +15,7 @@ teardown() {
 }
 
 @test "shell with no arg invokes sh -c with shell-picker expression" {
-  dcsh_run "cd '$WS_ROOT'; devcontainer-sh shell"
+  devcontainer_sh_run "cd '$WS_ROOT'; devcontainer-sh shell"
   [ "$status" -eq 0 ]
   [[ "$output" == *"sh -c"* ]]
   [[ "$output" == *"command -v zsh"* ]]
@@ -23,13 +23,13 @@ teardown() {
 }
 
 @test "shell bash invokes the named shell as login shell" {
-  dcsh_run "cd '$WS_ROOT'; devcontainer-sh shell bash"
+  devcontainer_sh_run "cd '$WS_ROOT'; devcontainer-sh shell bash"
   [ "$status" -eq 0 ]
   [[ "$output" == *"bash -l"* ]]
 }
 
 @test "shell short form `sh` works" {
-  dcsh_run "cd '$WS_ROOT'; devcontainer-sh sh fish"
+  devcontainer_sh_run "cd '$WS_ROOT'; devcontainer-sh sh fish"
   [ "$status" -eq 0 ]
   [[ "$output" == *"fish -l"* ]]
 }

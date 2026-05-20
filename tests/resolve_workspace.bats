@@ -15,13 +15,13 @@ teardown() {
 }
 
 @test "resolves workspace from inside .devcontainer parent" {
-  dcsh_run "cd '$WS_ROOT'; _dcsh_resolve_workspace"
+  devcontainer_sh_run "cd '$WS_ROOT'; _devcontainer_sh_resolve_workspace"
   [ "$status" -eq 0 ]
   [ "$(realpath "$output")" = "$(realpath "$WS_ROOT")" ]
 }
 
 @test "resolves workspace by walking up several levels" {
-  dcsh_run "cd '$WS_ROOT/src/nested'; _dcsh_resolve_workspace"
+  devcontainer_sh_run "cd '$WS_ROOT/src/nested'; _devcontainer_sh_resolve_workspace"
   [ "$status" -eq 0 ]
   [ "$(realpath "$output")" = "$(realpath "$WS_ROOT")" ]
 }
@@ -29,7 +29,7 @@ teardown() {
 @test "falls back to PWD when no .devcontainer is found" {
   local elsewhere
   elsewhere="$(mktemp -d)"
-  dcsh_run "cd '$elsewhere'; _dcsh_resolve_workspace"
+  devcontainer_sh_run "cd '$elsewhere'; _devcontainer_sh_resolve_workspace"
   [ "$status" -eq 0 ]
   [ "$(realpath "$output")" = "$(realpath "$elsewhere")" ]
   rm -rf "$elsewhere"
@@ -39,7 +39,7 @@ teardown() {
   local alt
   alt="$(mktemp -d)"
   echo '{}' > "$alt/.devcontainer.json"
-  dcsh_run "cd '$alt'; _dcsh_resolve_workspace"
+  devcontainer_sh_run "cd '$alt'; _devcontainer_sh_resolve_workspace"
   [ "$status" -eq 0 ]
   [ "$(realpath "$output")" = "$(realpath "$alt")" ]
   rm -rf "$alt"

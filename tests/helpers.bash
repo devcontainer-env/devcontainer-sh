@@ -15,7 +15,7 @@ STUB
   cat > "$STUB_DIR/docker" <<'STUB'
 #!/bin/sh
 case "$1" in
-  ps) echo "${DCSH_TEST_DOCKER_PS_OUT-}" ;;
+  ps) echo "${DEVCONTAINER_SH_TEST_DOCKER_PS_OUT-}" ;;
   *)  echo "docker $*" ;;
 esac
 STUB
@@ -28,7 +28,7 @@ teardown_stubs() {
 }
 
 # Run a zsh snippet with the plugin sourced. Captures stdout via bats `run`.
-dcsh_run() {
+devcontainer_sh_run() {
   run zsh -f -c "
     source '${PLUGIN_ROOT}/devcontainer-sh.plugin.zsh'
     $1

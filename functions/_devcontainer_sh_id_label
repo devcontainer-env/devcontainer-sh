@@ -1,11 +1,11 @@
 #autoload
 #
-# _dcsh_id_label WORKSPACE
+# _devcontainer_sh_id_label WORKSPACE
 #
 # Print the id-label that `devcontainer up` infers when no --id-label is given.
 # See @devcontainers/cli source: `devcontainer.local_folder=<absolute path>`.
 
 emulate -L zsh
 
-local ws="${1:?_dcsh_id_label: workspace folder required}"
+local ws="${1:?_devcontainer_sh_id_label: workspace folder required}"
 print -r -- "devcontainer.local_folder=${ws:A}"

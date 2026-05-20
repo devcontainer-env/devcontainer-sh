@@ -1,4 +1,4 @@
-_dcsh::help() {
+_devcontainer_sh::help() {
   emulate -L zsh
   cat <<'EOF'
 devcontainer-sh — zsh wrapper around the devcontainer CLI

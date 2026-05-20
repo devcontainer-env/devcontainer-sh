@@ -1,6 +1,6 @@
 #autoload
 #
-# _dcsh_pick_shell
+# _devcontainer_sh_pick_shell
 #
 # Print a sh expression that picks the best available shell inside the
 # container at runtime. We can't probe the container without an extra exec

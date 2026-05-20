@@ -15,19 +15,19 @@ teardown() {
 }
 
 @test "build -n expands to --no-cache" {
-  dcsh_run "cd '$WS_ROOT'; devcontainer-sh build -n"
+  devcontainer_sh_run "cd '$WS_ROOT'; devcontainer-sh build -n"
   [ "$status" -eq 0 ]
   [[ "$output" == *"--no-cache"* ]]
 }
 
 @test "build -p captures the next arg as --platform value" {
-  dcsh_run "cd '$WS_ROOT'; devcontainer-sh build -p linux/amd64"
+  devcontainer_sh_run "cd '$WS_ROOT'; devcontainer-sh build -p linux/amd64"
   [ "$status" -eq 0 ]
   [[ "$output" == *"--platform linux/amd64"* ]]
 }
 
 @test "build injects workspace folder" {
-  dcsh_run "cd '$WS_ROOT'; devcontainer-sh build"
+  devcontainer_sh_run "cd '$WS_ROOT'; devcontainer-sh build"
   [ "$status" -eq 0 ]
   [[ "$output" == *"--workspace-folder $(realpath "$WS_ROOT")"* ]]
 }

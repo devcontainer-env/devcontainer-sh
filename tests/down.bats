@@ -15,14 +15,14 @@ teardown() {
 }
 
 @test "down removes containers matching the workspace label" {
-  export DCSH_TEST_DOCKER_PS_OUT="abc123def456"
-  dcsh_run "cd '$WS_ROOT'; export DCSH_TEST_DOCKER_PS_OUT=abc123def456; devcontainer-sh down"
+  export DEVCONTAINER_SH_TEST_DOCKER_PS_OUT="abc123def456"
+  devcontainer_sh_run "cd '$WS_ROOT'; export DEVCONTAINER_SH_TEST_DOCKER_PS_OUT=abc123def456; devcontainer-sh down"
   [ "$status" -eq 0 ]
   [[ "$output" == *"docker rm -f abc123def456"* ]]
 }
 
 @test "down exits non-zero when no container matches" {
-  dcsh_run "cd '$WS_ROOT'; devcontainer-sh down"
+  devcontainer_sh_run "cd '$WS_ROOT'; devcontainer-sh down"
   [ "$status" -eq 1 ]
   [[ "$output" == *"no container found"* ]]
   [[ "$output" == *"devcontainer.local_folder=$(realpath "$WS_ROOT")"* ]]

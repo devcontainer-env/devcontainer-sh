@@ -1,4 +1,4 @@
-_dcsh::build() {
+_devcontainer_sh::build() {
   emulate -L zsh
 
   local -a args extras
@@ -23,7 +23,7 @@ _dcsh::build() {
   done
 
   if (( ! has_ws )); then
-    local ws; ws="$(_dcsh_resolve_workspace)"
+    local ws; ws="$(_devcontainer_sh_resolve_workspace)"
     args=(--workspace-folder "$ws" $args)
   fi
 

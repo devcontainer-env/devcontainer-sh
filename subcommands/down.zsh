@@ -1,4 +1,4 @@
-_dcsh::down() {
+_devcontainer_sh::down() {
   emulate -L zsh
 
   local ws=""
@@ -18,9 +18,9 @@ _dcsh::down() {
     esac
   done
 
-  [[ -z "$ws" ]] && ws="$(_dcsh_resolve_workspace)"
+  [[ -z "$ws" ]] && ws="$(_devcontainer_sh_resolve_workspace)"
 
-  local label; label="$(_dcsh_id_label "$ws")"
+  local label; label="$(_devcontainer_sh_id_label "$ws")"
 
   local -a ids
   ids=("${(@f)$(command docker ps -aq --filter "label=${label}")}")

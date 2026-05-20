@@ -1,6 +1,6 @@
-_dcsh::version() {
+_devcontainer_sh::version() {
   emulate -L zsh
-  print -r -- "devcontainer-sh ${DCSH_VERSION:-0.1.0}"
+  print -r -- "devcontainer-sh ${DEVCONTAINER_SH_VERSION:-0.1.0}"
   if (( $+commands[devcontainer] )); then
     print -rn -- "devcontainer "
     command devcontainer --version

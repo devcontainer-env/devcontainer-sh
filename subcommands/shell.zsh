@@ -1,4 +1,4 @@
-_dcsh::shell() {
+_devcontainer_sh::shell() {
   emulate -L zsh
 
   local -a passthru
@@ -23,14 +23,14 @@ _dcsh::shell() {
   done
 
   if (( ! has_ws )); then
-    local ws; ws="$(_dcsh_resolve_workspace)"
+    local ws; ws="$(_devcontainer_sh_resolve_workspace)"
     passthru=(--workspace-folder "$ws" $passthru)
   fi
 
   if [[ -n "$requested_shell" ]]; then
     command devcontainer exec $passthru "$requested_shell" -l
   else
-    local picker; picker="$(_dcsh_pick_shell)"
+    local picker; picker="$(_devcontainer_sh_pick_shell)"
     command devcontainer exec $passthru sh -c "exec ${picker} -l"
   fi
 }

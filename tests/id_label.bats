@@ -8,7 +8,7 @@ teardown() { teardown_stubs; }
 @test "id-label uses devcontainer.local_folder with absolute path" {
   local ws
   ws="$(mktemp -d)"
-  dcsh_run "_dcsh_id_label '$ws'"
+  devcontainer_sh_run "_devcontainer_sh_id_label '$ws'"
   [ "$status" -eq 0 ]
   [ "$output" = "devcontainer.local_folder=$(realpath "$ws")" ]
   rm -rf "$ws"
@@ -17,7 +17,7 @@ teardown() { teardown_stubs; }
 @test "id-label resolves a relative path to absolute" {
   local ws
   ws="$(mktemp -d)"
-  dcsh_run "cd '$ws'; _dcsh_id_label ."
+  devcontainer_sh_run "cd '$ws'; _devcontainer_sh_id_label ."
   [ "$status" -eq 0 ]
   [ "$output" = "devcontainer.local_folder=$(realpath "$ws")" ]
   rm -rf "$ws"
