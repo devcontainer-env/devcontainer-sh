@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.1](https://github.com/devcontainer-env/devcontainer-sh/compare/v0.1.0...v0.1.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* **ci:** merge with the App token so main gets its CI run ([#23](https://github.com/devcontainer-env/devcontainer-sh/issues/23)) ([16e81ff](https://github.com/devcontainer-env/devcontainer-sh/commit/16e81ff5e61e1237567ab42d9226133faa005712))
+* resolve plugin dir reliably and tolerate empty subcommands ([95a9cc9](https://github.com/devcontainer-env/devcontainer-sh/commit/95a9cc9600af74b0b2033112c561253b44070ee1))
+
 ## [0.1.0](https://github.com/devcontainer-env/devcontainer-sh/compare/v0.0.1...v0.1.0) (2026-05-20)
 
 
