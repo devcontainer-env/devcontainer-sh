@@ -5,3 +5,7 @@ paths:
     ignore:
       - 'missing input "app-id"'
       - 'input "client-id" is not defined'
+  .github/workflows/merge.yml:
+    ignore:
+      - 'missing input "app-id"'
+      - 'input "client-id" is not defined'
