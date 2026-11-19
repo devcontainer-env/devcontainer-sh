@@ -1,7 +1,8 @@
-# devcontainer-sh — zsh wrapper around the devcontainer CLI.
-# Works with oh-my-zsh, zinit, antidote, or plain `source`.
-
-DEVCONTAINER_SH_VERSION="0.1.0"
+# devcontainer-sh — zsh plugin entry.
+#
+# The tool is the bash executable in bin/; this file only puts it on PATH and
+# registers the zsh completions, so oh-my-zsh, zinit, antidote or a plain
+# `source` keep working.
 
 0="${${ZERO:-${0:#$ZSH_ARGZERO}}:-${(%):-%N}}"
 0="${${(M)0:#/*}:-$PWD/$0}"
@@ -11,16 +12,6 @@ DEVCONTAINER_SH_VERSION="0.1.0"
 
   local plugin_dir="${1:A:h}"
 
-  fpath=("$plugin_dir/functions" "$plugin_dir/completions" $fpath)
-
-  autoload -Uz _devcontainer_sh_dispatch _devcontainer_sh_resolve_workspace _devcontainer_sh_pick_shell _devcontainer_sh_id_label
-
-  local f
-  for f in "$plugin_dir"/subcommands/*.zsh(N); do
-    source "$f"
-  done
+  path=("$plugin_dir/bin" $path)
+  fpath=("$plugin_dir/completions" $fpath)
 } "$0"
-
-devcontainer-sh() {
-  _devcontainer_sh_dispatch "$@"
-}

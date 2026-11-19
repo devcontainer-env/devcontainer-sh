@@ -5,11 +5,11 @@ _devcontainer_sh() {
   typeset -A opt_args
 
   _arguments -C \
-    '1: :->subcmd' \
+    '1: :->cmd' \
     '*::arg:->args'
 
   case "$state" in
-    subcmd)
+    cmd)
       local -a subs=(
         'up:Create and start the dev container'
         'shell:Open an interactive shell in the container'
@@ -20,7 +20,7 @@ _devcontainer_sh() {
         'help:Show usage'
         'version:Show plugin and devcontainer CLI versions'
       )
-      _describe -t subcommands 'subcommand' subs
+      _describe -t commands 'command' subs
       ;;
     args)
       case "$line[1]" in

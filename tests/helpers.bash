@@ -1,8 +1,8 @@
 # Shared bats helpers.
 #
-# Each test runs zsh in a clean environment with stubbed `devcontainer` and
-# `docker` binaries on PATH. The stubs echo whatever args they receive so we
-# can assert what the plugin dispatches.
+# Each test runs the real bin/devcontainer-sh with stubbed `devcontainer` and
+# `docker` binaries first on PATH. The stubs echo whatever args they receive so
+# we can assert what the wrapper dispatches.
 
 PLUGIN_ROOT="${BATS_TEST_DIRNAME}/.."
 
@@ -20,17 +20,17 @@ case "$1" in
 esac
 STUB
   chmod +x "$STUB_DIR/devcontainer" "$STUB_DIR/docker"
-  export PATH="$STUB_DIR:$PATH"
+  export PATH="$PLUGIN_ROOT/bin:$STUB_DIR:$PATH"
 }
 
 teardown_stubs() {
   [ -n "${STUB_DIR-}" ] && rm -rf "$STUB_DIR"
+  return 0
 }
 
-# Run a zsh snippet with the plugin sourced. Captures stdout via bats `run`.
-devcontainer_sh_run() {
-  run zsh -f -c "
-    source '${PLUGIN_ROOT}/devcontainer-sh.plugin.zsh'
-    $1
-  "
+# A temporary workspace with a .devcontainer/devcontainer.json, in WS_ROOT.
+make_workspace() {
+  WS_ROOT="$(mktemp -d)"
+  mkdir -p "$WS_ROOT/.devcontainer"
+  echo '{}' > "$WS_ROOT/.devcontainer/devcontainer.json"
 }

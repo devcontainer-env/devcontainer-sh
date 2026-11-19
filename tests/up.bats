@@ -4,9 +4,8 @@ load helpers
 
 setup() {
   setup_stubs
-  WS_ROOT="$(mktemp -d)"
-  mkdir -p "$WS_ROOT/.devcontainer"
-  echo '{}' > "$WS_ROOT/.devcontainer/devcontainer.json"
+  make_workspace
+  cd "$WS_ROOT"
 }
 
 teardown() {
@@ -15,40 +14,53 @@ teardown() {
 }
 
 @test "up injects --workspace-folder when missing" {
-  devcontainer_sh_run "cd '$WS_ROOT'; devcontainer-sh up"
+  run devcontainer-sh up
   [ "$status" -eq 0 ]
   [[ "$output" == *"--workspace-folder $(realpath "$WS_ROOT")"* ]]
 }
 
 @test "up -R expands to --remove-existing-container --build-no-cache" {
-  devcontainer_sh_run "cd '$WS_ROOT'; devcontainer-sh up -R"
+  run devcontainer-sh up -R
   [ "$status" -eq 0 ]
   [[ "$output" == *"--remove-existing-container"* ]]
   [[ "$output" == *"--build-no-cache"* ]]
 }
 
 @test "up -r expands only to --remove-existing-container" {
-  devcontainer_sh_run "cd '$WS_ROOT'; devcontainer-sh up -r"
+  run devcontainer-sh up -r
   [ "$status" -eq 0 ]
   [[ "$output" == *"--remove-existing-container"* ]]
   [[ "$output" != *"--build-no-cache"* ]]
 }
 
+@test "up -n expands to --build-no-cache" {
+  run devcontainer-sh up -n
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"--build-no-cache"* ]]
+}
+
 @test "up -s expands to --skip-post-create" {
-  devcontainer_sh_run "cd '$WS_ROOT'; devcontainer-sh up -s"
+  run devcontainer-sh up -s
   [ "$status" -eq 0 ]
   [[ "$output" == *"--skip-post-create"* ]]
 }
 
 @test "up respects user-provided --workspace-folder" {
-  devcontainer_sh_run "cd '$WS_ROOT'; devcontainer-sh up --workspace-folder /elsewhere"
+  run devcontainer-sh up --workspace-folder /elsewhere
   [ "$status" -eq 0 ]
   [[ "$output" == *"--workspace-folder /elsewhere"* ]]
   [[ "$output" != *"$(realpath "$WS_ROOT")"* ]]
 }
 
+@test "up respects --workspace-folder=PATH" {
+  run devcontainer-sh up --workspace-folder=/elsewhere
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"--workspace-folder=/elsewhere"* ]]
+  [[ "$output" != *"$(realpath "$WS_ROOT")"* ]]
+}
+
 @test "up passes through unknown flags" {
-  devcontainer_sh_run "cd '$WS_ROOT'; devcontainer-sh up --log-level=debug"
+  run devcontainer-sh up --log-level=debug
   [ "$status" -eq 0 ]
   [[ "$output" == *"--log-level=debug"* ]]
 }

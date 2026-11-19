@@ -4,9 +4,8 @@ load helpers
 
 setup() {
   setup_stubs
-  WS_ROOT="$(mktemp -d)"
-  mkdir -p "$WS_ROOT/.devcontainer"
-  echo '{}' > "$WS_ROOT/.devcontainer/devcontainer.json"
+  make_workspace
+  cd "$WS_ROOT"
 }
 
 teardown() {
@@ -15,7 +14,7 @@ teardown() {
 }
 
 @test "shell with no arg invokes sh -c with shell-picker expression" {
-  devcontainer_sh_run "cd '$WS_ROOT'; devcontainer-sh shell"
+  run devcontainer-sh shell
   [ "$status" -eq 0 ]
   [[ "$output" == *"sh -c"* ]]
   [[ "$output" == *"command -v zsh"* ]]
@@ -23,13 +22,18 @@ teardown() {
 }
 
 @test "shell bash invokes the named shell as login shell" {
-  devcontainer_sh_run "cd '$WS_ROOT'; devcontainer-sh shell bash"
+  run devcontainer-sh shell bash
   [ "$status" -eq 0 ]
   [[ "$output" == *"bash -l"* ]]
 }
 
-@test "shell short form `sh` works" {
-  devcontainer_sh_run "cd '$WS_ROOT'; devcontainer-sh sh fish"
+@test "shell short form sh works" {
+  run devcontainer-sh sh fish
   [ "$status" -eq 0 ]
   [[ "$output" == *"fish -l"* ]]
+}
+
+@test "shell injects the workspace folder" {
+  run devcontainer-sh shell bash
+  [[ "$output" == *"--workspace-folder $(realpath "$WS_ROOT")"* ]]
 }
