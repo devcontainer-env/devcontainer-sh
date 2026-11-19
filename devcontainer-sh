@@ -164,8 +164,29 @@ cmd_shell() {
   exec devcontainer exec "${passthru[@]}" sh -c "exec ${picker} -l"
 }
 
+# list_add LIST ITEM
+#
+# Print the newline-separated LIST with ITEM appended, unless it is already
+# there. (bash 3.2 has no associative arrays to dedupe with.)
+list_add() {
+  case "
+$1
+" in
+    *"
+$2
+"*) printf '%s' "$1" ;;
+    *)
+      if [ -z "$1" ]; then
+        printf '%s' "$2"
+      else
+        printf '%s\n%s' "$1" "$2"
+      fi
+      ;;
+  esac
+}
+
 cmd_down() {
-  local ws="" arg
+  local ws="" volumes=0 arg
   while [ $# -gt 0 ]; do
     arg="$1"
     case "$arg" in
@@ -178,9 +199,20 @@ cmd_down() {
         ws="${arg#--workspace-folder=}"
         shift
         ;;
+      -v | --volumes)
+        volumes=1
+        shift
+        ;;
       -h | --help)
-        printf 'Usage: devcontainer-sh down [--workspace-folder PATH]\n'
-        printf 'Stops and removes the dev container associated with the workspace.\n'
+        cat <<'EOF'
+Usage: devcontainer-sh down [--workspace-folder PATH] [-v|--volumes]
+
+Stops and removes the dev container associated with the workspace.
+
+A compose-based dev container is removed as a whole: every service of its
+compose project and the project's network go, not only the workspace service.
+Named volumes are kept unless -v/--volumes is given.
+EOF
         return 0
         ;;
       *) shift ;;
@@ -202,7 +234,41 @@ EOF
 
   [ "${#ids[@]}" -gt 0 ] || die "down: no container found for label ${label}"
 
-  exec docker rm -f "${ids[@]}"
+  # The CLI puts the devcontainer.local_folder label on the workspace container
+  # only. The other services of a compose dev container are found through the
+  # compose project the workspace container belongs to.
+  local project projects="" plain=""
+  for id in "${ids[@]}"; do
+    project="$(docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' "$id" 2>/dev/null)" || project=""
+    if [ -n "$project" ]; then
+      projects="$(list_add "$projects" "$project")"
+    else
+      plain="$(list_add "$plain" "$id")"
+    fi
+  done
+
+  local status=0
+  local -a compose_args
+  while IFS= read -r project; do
+    [ -n "$project" ] || continue
+    compose_args=(-p "$project" down --remove-orphans)
+    [ "$volumes" = 0 ] || compose_args+=(--volumes)
+    docker compose "${compose_args[@]}" || status=$?
+  done <<EOF
+$projects
+EOF
+
+  local -a plain_ids=()
+  while IFS= read -r id; do
+    [ -z "$id" ] || plain_ids+=("$id")
+  done <<EOF
+$plain
+EOF
+  if [ "${#plain_ids[@]}" -gt 0 ]; then
+    docker rm -f "${plain_ids[@]}" || status=$?
+  fi
+
+  return "$status"
 }
 
 cmd_help() {
@@ -220,7 +286,9 @@ Commands:
                          (auto-picks zsh > bash > sh, or pass a shell name)
   exec <cmd> [args]      Run a one-off command in the container
   build [opts]           Build the container image  (-n no-cache, -p PLATFORM)
-  down                   Stop and remove the container for this workspace
+  down [-v]              Stop and remove the container for this workspace
+                         (a compose dev container goes as a whole; -v also
+                         removes its named volumes)
   help                   Show this help
   version                Show wrapper and devcontainer CLI versions
 

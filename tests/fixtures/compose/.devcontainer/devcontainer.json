@@ -1,0 +1,6 @@
+{
+  "name": "devcontainer-sh-compose-fixture",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "workspace",
+  "workspaceFolder": "/home/vscode"
+}

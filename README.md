@@ -126,9 +126,14 @@ devcontainer-sh build -p linux/amd64           # --platform linux/amd64
 
 **devcontainer-sh down** — Stop and remove the container associated with the current workspace. Resolves the same `devcontainer.local_folder` label the CLI infers from `--workspace-folder`, then runs `docker rm -f`.
 
+A compose-based dev container goes as a whole: the CLI labels only the workspace container, so `down` reads the compose project from it and runs `docker compose -p <project> down --remove-orphans`. Every service and the project's network are removed. Named volumes are kept, since they may hold data; pass `-v` to remove them too.
+
 ```bash
-devcontainer-sh down
+devcontainer-sh down        # keeps named volumes
+devcontainer-sh down -v     # also removes them
 ```
+
+If the same compose file is also run outside the dev container under the same project name, `down` stops that stack too.
 
 ## Configuration
 

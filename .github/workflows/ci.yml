@@ -96,6 +96,18 @@ jobs:
         if: always()
         run: devcontainer-sh down --workspace-folder tests/fixtures/workspace
 
+      - name: Start a compose dev container
+        run: devcontainer-sh up --workspace-folder tests/fixtures/compose
+
+      - name: Down removes every service and the network, not only the workspace
+        run: |
+          project=compose_devcontainer
+          services() { docker ps -aq --filter "label=com.docker.compose.project=$project" | wc -l | tr -d ' '; }
+          test "$(services)" = 2
+          devcontainer-sh down --workspace-folder tests/fixtures/compose
+          test "$(services)" = 0
+          test -z "$(docker network ls -q --filter "label=com.docker.compose.project=$project")"
+
   release:
     needs: [lint, test, action]
     if: github.event_name == 'push'
