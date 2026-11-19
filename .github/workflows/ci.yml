@@ -56,9 +56,14 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/bash32"
           ln -s /bin/bash "$RUNNER_TEMP/bash32/bash"
-          bash_version="$(PATH="$RUNNER_TEMP/bash32:$PATH" bash --version | head -1)"
-          echo "$bash_version"
-          nix develop --command env PATH="$RUNNER_TEMP/bash32:$PATH" bats tests/
+          # PATH is changed inside the dev shell, so bats and the rest of its
+          # tools are still found; only `bash` now resolves to the system one.
+          # shellcheck disable=SC2016 # the inner sh expands these, on purpose
+          nix develop --command sh -c '
+            PATH="$1:$PATH"
+            bash --version | head -1
+            bats tests/
+          ' _ "$RUNNER_TEMP/bash32"
 
   # The action, used the way a workflow would use it, against a real container.
   action:
