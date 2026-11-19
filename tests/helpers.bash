@@ -15,8 +15,10 @@ STUB
   cat > "$STUB_DIR/docker" <<'STUB'
 #!/bin/sh
 case "$1" in
-  ps) echo "${DEVCONTAINER_SH_TEST_DOCKER_PS_OUT-}" ;;
-  *)  echo "docker $*" ;;
+  ps)      echo "${DEVCONTAINER_SH_TEST_DOCKER_PS_OUT-}" ;;
+  inspect) echo "${DEVCONTAINER_SH_TEST_COMPOSE_PROJECT-}" ;;
+  compose) echo "docker $*"; exit "${DEVCONTAINER_SH_TEST_COMPOSE_EXIT-0}" ;;
+  *)       echo "docker $*" ;;
 esac
 STUB
   chmod +x "$STUB_DIR/devcontainer" "$STUB_DIR/docker"

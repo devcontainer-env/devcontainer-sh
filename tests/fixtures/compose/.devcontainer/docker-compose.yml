@@ -1,0 +1,7 @@
+services:
+  workspace:
+    image: mcr.microsoft.com/devcontainers/base:bookworm
+    command: sleep infinity
+  sidecar:
+    image: busybox:stable
+    command: sleep infinity
