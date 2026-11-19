@@ -8,7 +8,7 @@
 # Written for bash 3.2 (the macOS system bash): no associative arrays, no
 # mapfile, no ${var,,}.
 
-DEVCONTAINER_SH_VERSION="0.1.0" # x-release-please-version
+DEVCONTAINER_SH_VERSION="1.0.0" # x-release-please-version
 
 die() {
   printf 'devcontainer-sh: %s\n' "$*" >&2
