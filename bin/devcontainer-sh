@@ -1,0 +1,269 @@
+#!/usr/bin/env bash
+#
+# devcontainer-sh — a thin wrapper around the devcontainer CLI.
+#
+# One dispatcher command, workspace auto-detection, and no --workspace-folder
+# to type. Unknown flags pass straight through to the upstream CLI.
+#
+# Written for bash 3.2 (the macOS system bash): no associative arrays, no
+# mapfile, no ${var,,}.
+
+DEVCONTAINER_SH_VERSION="0.1.0" # x-release-please-version
+
+die() {
+  printf 'devcontainer-sh: %s\n' "$*" >&2
+  exit 1
+}
+
+# abs_path PATH
+#
+# Print PATH as an absolute path with symlinks resolved. A path that does not
+# exist is made absolute without resolving it.
+abs_path() {
+  local p="$1"
+  if [ -d "$p" ]; then
+    (cd -P -- "$p" && pwd -P)
+  else
+    case "$p" in
+      /*) printf '%s\n' "$p" ;;
+      *) printf '%s/%s\n' "$PWD" "$p" ;;
+    esac
+  fi
+}
+
+# resolve_workspace [START_DIR]
+#
+# Print the workspace folder for the current context: the nearest ancestor of
+# START_DIR (default $PWD) that contains a .devcontainer/devcontainer.json or
+# .devcontainer.json. Falls back to START_DIR if no config is found, so commands
+# still pass a valid --workspace-folder to the upstream CLI.
+resolve_workspace() {
+  local dir start
+  dir="$(abs_path "${1:-$PWD}")"
+  start="$dir"
+
+  while [ "$dir" != "/" ] && [ -n "$dir" ]; do
+    if [ -f "$dir/.devcontainer/devcontainer.json" ] || [ -f "$dir/.devcontainer.json" ]; then
+      printf '%s\n' "$dir"
+      return 0
+    fi
+    dir="$(dirname -- "$dir")"
+  done
+
+  printf '%s\n' "$start"
+}
+
+# id_label WORKSPACE
+#
+# Print the id-label that `devcontainer up` infers when no --id-label is given.
+# See @devcontainers/cli source: `devcontainer.local_folder=<absolute path>`.
+id_label() {
+  [ -n "${1:-}" ] || die "id_label: workspace folder required"
+  printf 'devcontainer.local_folder=%s\n' "$(abs_path "$1")"
+}
+
+# has_workspace_flag ARGS...
+#
+# Succeed if ARGS carry --workspace-folder. Arguments after a bare -- belong to
+# the command being run and are not looked at.
+has_workspace_flag() {
+  local arg
+  for arg in "$@"; do
+    case "$arg" in
+      --) return 1 ;;
+      --workspace-folder | --workspace-folder=*) return 0 ;;
+    esac
+  done
+  return 1
+}
+
+cmd_up() {
+  local -a args=() extras=()
+  local arg
+  for arg in "$@"; do
+    case "$arg" in
+      -r) extras+=(--remove-existing-container) ;;
+      -n) extras+=(--build-no-cache) ;;
+      -R) extras+=(--remove-existing-container --build-no-cache) ;;
+      -s) extras+=(--skip-post-create) ;;
+      *) args+=("$arg") ;;
+    esac
+  done
+
+  if ! has_workspace_flag "${args[@]}"; then
+    args=(--workspace-folder "$(resolve_workspace)" "${args[@]}")
+  fi
+
+  exec devcontainer up "${extras[@]}" "${args[@]}"
+}
+
+cmd_build() {
+  local -a args=() extras=()
+  local arg capture_platform=0
+  for arg in "$@"; do
+    if [ "$capture_platform" = 1 ]; then
+      extras+=(--platform "$arg")
+      capture_platform=0
+      continue
+    fi
+    case "$arg" in
+      -n) extras+=(--no-cache) ;;
+      -p) capture_platform=1 ;;
+      *) args+=("$arg") ;;
+    esac
+  done
+  [ "$capture_platform" = 0 ] || die "build: -p requires a platform, e.g. -p linux/amd64"
+
+  if ! has_workspace_flag "${args[@]}"; then
+    args=(--workspace-folder "$(resolve_workspace)" "${args[@]}")
+  fi
+
+  exec devcontainer build "${extras[@]}" "${args[@]}"
+}
+
+cmd_exec() {
+  local -a args=("$@")
+
+  if ! has_workspace_flag "${args[@]}"; then
+    args=(--workspace-folder "$(resolve_workspace)" "${args[@]}")
+  fi
+
+  exec devcontainer exec "${args[@]}"
+}
+
+cmd_shell() {
+  local -a passthru=()
+  local arg requested_shell=""
+
+  for arg in "$@"; do
+    case "$arg" in
+      --workspace-folder | --workspace-folder=*) passthru+=("$arg") ;;
+      -*) passthru+=("$arg") ;;
+      *)
+        if [ -z "$requested_shell" ]; then
+          requested_shell="$arg"
+        else
+          passthru+=("$arg")
+        fi
+        ;;
+    esac
+  done
+
+  if ! has_workspace_flag "${passthru[@]}"; then
+    passthru=(--workspace-folder "$(resolve_workspace)" "${passthru[@]}")
+  fi
+
+  if [ -n "$requested_shell" ]; then
+    exec devcontainer exec "${passthru[@]}" "$requested_shell" -l
+  fi
+
+  # The container's own `command -v` picks the shell, which saves an extra exec
+  # round-trip to probe it from here.
+  # shellcheck disable=SC2016
+  local picker='${SHELL:-$(command -v zsh || command -v bash || command -v sh)}'
+  exec devcontainer exec "${passthru[@]}" sh -c "exec ${picker} -l"
+}
+
+cmd_down() {
+  local ws="" arg
+  while [ $# -gt 0 ]; do
+    arg="$1"
+    case "$arg" in
+      --workspace-folder)
+        [ $# -ge 2 ] || die "down: --workspace-folder requires a path"
+        ws="$2"
+        shift 2
+        ;;
+      --workspace-folder=*)
+        ws="${arg#--workspace-folder=}"
+        shift
+        ;;
+      -h | --help)
+        printf 'Usage: devcontainer-sh down [--workspace-folder PATH]\n'
+        printf 'Stops and removes the dev container associated with the workspace.\n'
+        return 0
+        ;;
+      *) shift ;;
+    esac
+  done
+
+  [ -n "$ws" ] || ws="$(resolve_workspace)"
+
+  local label out id
+  label="$(id_label "$ws")"
+  out="$(docker ps -aq --filter "label=${label}")" || die "down: docker ps failed"
+
+  local -a ids=()
+  while IFS= read -r id; do
+    [ -z "$id" ] || ids+=("$id")
+  done <<EOF
+$out
+EOF
+
+  [ "${#ids[@]}" -gt 0 ] || die "down: no container found for label ${label}"
+
+  exec docker rm -f "${ids[@]}"
+}
+
+cmd_help() {
+  cat <<'EOF'
+devcontainer-sh — a thin wrapper around the devcontainer CLI
+
+Usage:
+  devcontainer-sh <command> [args...]
+
+Commands:
+  up [opts]              Create and start the dev container for this workspace
+                         Shortcuts: -r remove-existing, -n build-no-cache,
+                                    -R both, -s skip-post-create
+  shell, sh [shell]      Open an interactive shell inside the container
+                         (auto-picks zsh > bash > sh, or pass a shell name)
+  exec <cmd> [args]      Run a one-off command in the container
+  build [opts]           Build the container image  (-n no-cache, -p PLATFORM)
+  down                   Stop and remove the container for this workspace
+  help                   Show this help
+  version                Show wrapper and devcontainer CLI versions
+
+All commands auto-detect --workspace-folder by walking up from $PWD to find
+the nearest .devcontainer/devcontainer.json. Pass --workspace-folder explicitly
+to override. Unknown flags are passed straight through to the upstream CLI.
+EOF
+}
+
+cmd_version() {
+  printf 'devcontainer-sh %s\n' "$DEVCONTAINER_SH_VERSION"
+  if command -v devcontainer >/dev/null 2>&1; then
+    printf 'devcontainer '
+    devcontainer --version
+  else
+    printf 'devcontainer CLI not found in PATH\n' >&2
+    return 1
+  fi
+}
+
+main() {
+  if [ $# -eq 0 ]; then
+    cmd_help
+    return 1
+  fi
+
+  local name="$1"
+  shift
+
+  case "$name" in
+    up) cmd_up "$@" ;;
+    shell | sh) cmd_shell "$@" ;;
+    exec) cmd_exec "$@" ;;
+    build) cmd_build "$@" ;;
+    down) cmd_down "$@" ;;
+    help | -h | --help) cmd_help ;;
+    version | -v | --version) cmd_version ;;
+    *)
+      printf 'devcontainer-sh: unknown command: %s\n' "$name" >&2
+      printf "Run 'devcontainer-sh help' for usage.\n" >&2
+      return 1
+      ;;
+  esac
+}
+
+main "$@"

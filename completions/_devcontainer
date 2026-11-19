@@ -5,11 +5,11 @@ _devcontainer() {
   typeset -A opt_args
 
   _arguments -C \
-    '1: :->subcmd' \
+    '1: :->cmd' \
     '*::arg:->args'
 
   case "$state" in
-    subcmd)
+    cmd)
       local -a subs=(
         'up:Create and run dev container'
         'set-up:Set up an existing container as a dev container'
@@ -22,7 +22,7 @@ _devcontainer() {
         'templates:Templates commands'
         'exec:Execute a command on a running dev container'
       )
-      _describe -t commands 'devcontainer subcommand' subs
+      _describe -t commands 'devcontainer command' subs
       ;;
     args)
       case "$line[1]" in

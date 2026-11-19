@@ -45,14 +45,14 @@ echo 'source ~/.zsh/devcontainer-sh/devcontainer-sh.plugin.zsh' >> ~/.zshrc
 
 - zsh 5.0+
 - [`@devcontainers/cli`](https://github.com/devcontainers/cli) on `$PATH` (`npm i -g @devcontainers/cli`)
-- Docker (for the `down` subcommand)
+- Docker (for the `down` command)
 
 ## Usage
 
 ```text
-Usage: devcontainer-sh <subcommand> [args...]
+Usage: devcontainer-sh <command> [args...]
 
-Subcommands:
+Commands:
   up          Create and start the dev container for this workspace
   shell, sh   Open an interactive shell inside the container
   exec        Run a one-off command in the container
@@ -102,7 +102,7 @@ devcontainer-sh down
 
 ### Workspace auto-detection
 
-All subcommands walk up from `$PWD` looking for `.devcontainer/devcontainer.json` or `.devcontainer.json` and pass that directory as `--workspace-folder`. Pass `--workspace-folder` yourself to override.
+All commands walk up from `$PWD` looking for `.devcontainer/devcontainer.json` or `.devcontainer.json` and pass that directory as `--workspace-folder`. Pass `--workspace-folder` yourself to override.
 
 ### Pass-through
 
