@@ -1,6 +1,6 @@
 # Shared bats helpers.
 #
-# Each test runs the real bin/devcontainer-sh with stubbed `devcontainer` and
+# Each test runs the real devcontainer-sh with stubbed `devcontainer` and
 # `docker` binaries first on PATH. The stubs echo whatever args they receive so
 # we can assert what the wrapper dispatches.
 
@@ -20,7 +20,7 @@ case "$1" in
 esac
 STUB
   chmod +x "$STUB_DIR/devcontainer" "$STUB_DIR/docker"
-  export PATH="$PLUGIN_ROOT/bin:$STUB_DIR:$PATH"
+  export PATH="$PLUGIN_ROOT:$STUB_DIR:$PATH"
 }
 
 teardown_stubs() {

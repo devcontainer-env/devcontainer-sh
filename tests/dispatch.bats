@@ -32,7 +32,7 @@ teardown() { teardown_stubs; }
 
 @test "version fails when the devcontainer CLI is missing" {
   rm "$STUB_DIR/devcontainer"
-  PATH="$PLUGIN_ROOT/bin:$STUB_DIR:/usr/bin:/bin" run devcontainer-sh version
+  PATH="$PLUGIN_ROOT:$STUB_DIR:/usr/bin:/bin" run devcontainer-sh version
   [ "$status" -eq 1 ]
   [[ "$output" == *"CLI not found"* ]]
 }

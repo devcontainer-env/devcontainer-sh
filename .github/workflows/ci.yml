@@ -10,12 +10,36 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+permissions:
+  contents: read
+
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v23
+
+      - name: Run ShellCheck
+        run: nix develop --command shellcheck --shell=bash devcontainer-sh
+
+      - name: Run actionlint
+        run: nix develop --command actionlint
+
+      - name: Build the Nix package
+        run: nix build
+
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        # macOS runs the macOS system bash, 3.2, through /bin/bash first on PATH.
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     steps:
       - name: Checkout
@@ -24,13 +48,51 @@ jobs:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v23
 
-
       - name: Run Tests
+        run: nix develop --command bats tests/
+
+      - name: Run Tests with the system bash
+        if: runner.os == 'macOS'
         run: |
-          nix develop --command bats tests/
+          mkdir -p "$RUNNER_TEMP/bash32"
+          ln -s /bin/bash "$RUNNER_TEMP/bash32/bash"
+          bash_version="$(PATH="$RUNNER_TEMP/bash32:$PATH" bash --version | head -1)"
+          echo "$bash_version"
+          nix develop --command env PATH="$RUNNER_TEMP/bash32:$PATH" bats tests/
+
+  # The action, used the way a workflow would use it, against a real container.
+  action:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Use the action
+        uses: ./
+
+      - name: Start the dev container
+        run: devcontainer-sh up --workspace-folder tests/fixtures/workspace
+
+      - name: Run a command in it
+        run: |
+          out="$(devcontainer-sh exec --workspace-folder tests/fixtures/workspace -- sh -c 'echo ok && id -un')"
+          echo "$out"
+          test "$(printf '%s\n' "$out" | head -1)" = ok
+
+      - name: The exit status comes through
+        run: |
+          if devcontainer-sh exec --workspace-folder tests/fixtures/workspace -- false; then
+            echo "expected a failure" >&2
+            exit 1
+          fi
+
+      - name: Remove the dev container
+        if: always()
+        run: devcontainer-sh down --workspace-folder tests/fixtures/workspace
 
   release:
-    needs: test
+    needs: [lint, test, action]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
@@ -54,3 +116,14 @@ jobs:
           manifest-file: .github/config/release-please-manifest.json
           config-file: .github/config/release-please-config.json
           target-branch: main
+
+      # Callers pin the major version, e.g. @v1, so it follows every release.
+      - name: Move the major version tag
+        if: steps.release.outputs.release_created
+        env:
+          TAG: ${{ steps.release.outputs.tag_name }}
+          MAJOR: v${{ steps.release.outputs.major }}
+        run: |
+          git fetch --tags --quiet
+          git tag --force "$MAJOR" "$TAG"
+          git push --force origin "$MAJOR"

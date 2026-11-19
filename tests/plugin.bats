@@ -14,7 +14,7 @@ teardown() { teardown_stubs; }
     command -v devcontainer-sh
   "
   [ "$status" -eq 0 ]
-  [[ "$output" == *"/bin/devcontainer-sh" ]]
+  [[ "$output" == */devcontainer-sh ]]
 }
 
 @test "sourcing the zsh plugin registers the completions" {

@@ -1,0 +1,35 @@
+name: devcontainer-sh
+description: >-
+  Put devcontainer-sh on PATH and install the devcontainer CLI, so later steps
+  can run devcontainer-sh up, exec and down.
+author: devcontainer-env
+branding:
+  icon: box
+  color: blue
+
+inputs:
+  cli-version:
+    description: Version of @devcontainers/cli to install when none is on PATH.
+    required: false
+    default: latest
+
+runs:
+  using: composite
+  steps:
+    - name: Add devcontainer-sh to PATH
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+      run: echo "$ACTION_PATH" >> "$GITHUB_PATH"
+
+    - name: Install the devcontainer CLI
+      shell: bash
+      env:
+        CLI_VERSION: ${{ inputs.cli-version }}
+      run: |
+        if command -v devcontainer >/dev/null 2>&1; then
+          echo "devcontainer CLI already installed: $(devcontainer --version)"
+          exit 0
+        fi
+        npm install --global "@devcontainers/cli@${CLI_VERSION}"
+        devcontainer --version
