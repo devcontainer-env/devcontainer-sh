@@ -38,6 +38,11 @@ teardown() { teardown_stubs; }
 }
 
 @test "runs without a login or interactive shell" {
-  run env -i PATH="$PATH" HOME="$HOME" bash -c 'devcontainer-sh help'
-  [ "$status" -eq 0 ]
+  # An empty HOME and a closed stdin: bash reads ~/.bashrc even for `-c` when
+  # its stdin is a socket (as under sshd), and that is not what is tested here.
+  run env -i PATH="$PATH" HOME="$BATS_TEST_TMPDIR" bash -c 'devcontainer-sh help' < /dev/null
+  [ "$status" -eq 0 ] || {
+    echo "status=$status bash=$(command -v bash) output=$output" >&2
+    return 1
+  }
 }
